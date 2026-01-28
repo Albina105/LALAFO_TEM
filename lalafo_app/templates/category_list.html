@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Категории</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .add-category-btn {
+            display: block;
+            margin: 0 auto 40px;
+            padding: 15px 40px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .add-category-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .emoji-option {
+            font-size: 1.5rem;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-option:hover {
+            background: #f0f0f0;
+            transform: scale(1.2);
+        }
+
+        .emoji-option.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover .category-icon {
+            transform: rotate(10deg) scale(1.1);
+        }
+
+        .category-name {
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .category-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .category-arrow {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover .category-arrow {
+            opacity: 1;
+            transform: translateX(5px);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .category-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.1);
+            background: #ff3838;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 30px;
+            }
+
+            .categories-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .emoji-picker {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Все категории</h1>
+
+        <button class="add-category-btn" onclick="openModal()">+ Добавить категорию</button>
+
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- Категории будут добавлены через JavaScript -->
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2>Новая категория</h2>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label>Название категории</label>
+                    <input type="text" id="categoryName" placeholder="Например: Электроника" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Описание</label>
+                    <textarea id="categoryDescription" placeholder="Краткое описание категории" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Выберите иконку</label>
+                    <div class="emoji-picker">
+                        <span class="emoji-option" data-emoji="📱">📱</span>
+                        <span class="emoji-option" data-emoji="👕">👕</span>
+                        <span class="emoji-option" data-emoji="🏠">🏠</span>
+                        <span class="emoji-option" data-emoji="⚽">⚽</span>
+                        <span class="emoji-option" data-emoji="📚">📚</span>
+                        <span class="emoji-option" data-emoji="🎮">🎮</span>
+                        <span class="emoji-option" data-emoji="🍔">🍔</span>
+                        <span class="emoji-option" data-emoji="🚗">🚗</span>
+                        <span class="emoji-option" data-emoji="✈️">✈️</span>
+                        <span class="emoji-option" data-emoji="🎵">🎵</span>
+                        <span class="emoji-option" data-emoji="🎨">🎨</span>
+                        <span class="emoji-option" data-emoji="💼">💼</span>
+                        <span class="emoji-option" data-emoji="🏥">🏥</span>
+                        <span class="emoji-option" data-emoji="🎓">🎓</span>
+                        <span class="emoji-option" data-emoji="💍">💍</span>
+                        <span class="emoji-option" data-emoji="🐾">🐾</span>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button type="submit" class="btn-save">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Начальные категории
+        let categories = [
+            { name: 'Электроника', description: 'Смартфоны, планшеты и гаджеты', icon: '📱' },
+            { name: 'Одежда', description: 'Мужская и женская мода', icon: '👕' },
+            { name: 'Дом и сад', description: 'Товары для дома и интерьера', icon: '🏠' },
+            { name: 'Спорт', description: 'Спортивные товары и экипировка', icon: '⚽' },
+            { name: 'Книги', description: 'Литература всех жанров', icon: '📚' },
+            { name: 'Игры', description: 'Видеоигры и консоли', icon: '🎮' }
+        ];
+
+        let selectedEmoji = '📱';
+
+        // Выбор эмодзи
+        document.querySelectorAll('.emoji-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.emoji-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedEmoji = this.dataset.emoji;
+            });
+        });
+
+        // Открытие модального окна
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('categoryForm').reset();
+            document.querySelectorAll('.emoji-option').forEach(o => o.classList.remove('selected'));
+            document.querySelector('.emoji-option').classList.add('selected');
+            selectedEmoji = '📱';
+        }
+
+        // Закрытие модального окна
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Закрытие по клику вне модального окна
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Добавление категории
+        document.getElementById('categoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('categoryName').value;
+            const description = document.getElementById('categoryDescription').value;
+
+            categories.push({
+                name: name,
+                description: description,
+                icon: selectedEmoji
+            });
+
+            renderCategories();
+            closeModal();
+        });
+
+        // Удаление категории
+        function deleteCategory(index) {
+            if (confirm('Вы уверены, что хотите удалить эту категорию?')) {
+                categories.splice(index, 1);
+                renderCategories();
+            }
+        }
+
+        // Отрисовка категорий
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = '';
+
+            categories.forEach((category, index) => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.innerHTML = `
+                    <button class="delete-btn" onclick="deleteCategory(${index})">×</button>
+                    <div class="category-icon">${category.icon}</div>
+                    <div class="category-name">${category.name}</div>
+                    <div class="category-description">${category.description}</div>
+                    <div class="category-arrow">→</div>
+                `;
+
+                card.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('delete-btn')) {
+                        this.style.transform = 'scale(0.98)';
+                        setTimeout(() => {
+                            this.style.transform = '';
+                        }, 100);
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Начальная отрисовка
+        renderCategories();
+    </script>
+</body>
+</html>
+
+
+
+
